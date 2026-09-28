@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0d12" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <title>owleye</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230a0d12'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23f5c542'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%230a0d12'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="bar">
+        <div class="brand">
+          <span class="eye" aria-hidden="true"></span>
+          <h1>owleye</h1>
+        </div>
+        <div class="bar-status">
+          <div class="mode-switch" role="tablist" data-i18n-aria="mode.aria">
+            <button id="mode-record" type="button" class="mode" role="tab" data-i18n="mode.record">Камера</button>
+            <button id="mode-view" type="button" class="mode" role="tab" data-i18n="mode.view">Просмотр</button>
+          </div>
+          <span id="state-pill" class="pill pill-idle" data-i18n="pill.idle">не запущено</span>
+          <span id="server-pill" class="pill pill-muted" data-i18n="pill.serverUnknown">сервер?</span>
+        </div>
+      </header>
+
+      <section class="stage">
+        <div class="viewport">
+          <video id="preview" playsinline muted autoplay></video>
+          <canvas id="overlay" class="overlay-canvas"></canvas>
+          <div id="viewport-hint" class="viewport-hint" data-i18n="hint.start">
+            Нажмите «Включить камеру» и разрешите доступ
+          </div>
+          <div class="meter">
+            <div class="meter-track"><div id="meter-fill" class="meter-fill"></div></div>
+            <div class="meter-labels">
+              <span id="score-text"></span>
+              <span id="threshold-text"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div id="session-panel" class="session">
+            <div class="session-head">
+              <b data-i18n="session.title">Сессия</b>
+              <small id="session-note" data-i18n="session.loading">загружаю…</small>
+            </div>
+            <code id="session-id">…</code>
+            <div class="session-actions">
+              <button id="btn-copy-link" type="button" class="ghost" data-i18n="session.copyLink">Скопировать ссылку</button>
+              <button id="btn-copy-id" type="button" class="ghost" data-i18n="session.copyId">Скопировать id</button>
+            </div>
+            <form id="goto-form" class="goto">
+              <input id="goto-id" type="text" data-i18n-placeholder="session.gotoPlaceholder" autocapitalize="off" spellcheck="false" />
+              <button type="submit" class="ghost" data-i18n="session.goto">Перейти</button>
+            </form>
+            <small data-i18n="session.share">Откройте ссылку на втором устройстве — там будет лента этой сессии и её уведомления.</small>
+          </div>
+
+          <div class="buttons">
+            <button id="btn-start" class="primary" data-i18n="btn.start">Включить камеру</button>
+            <button id="btn-stop" class="ghost" disabled data-i18n="btn.stop">Остановить</button>
+            <button id="btn-blackout" class="ghost" disabled data-i18n="btn.blackout">Погасить экран</button>
+            <button id="btn-test" class="ghost" data-i18n="btn.test">Тест адаптеров</button>
+          </div>
+
+          <details id="observe-settings" class="settings" open>
+            <summary data-i18n="settings.title">Настройки наблюдения</summary>
+
+            <label class="field">
+              <span data-i18n="settings.device">Имя устройства</span>
+              <input id="set-device" type="text" maxlength="40" placeholder="reception-mac" />
+            </label>
+
+            <label class="field">
+              <span data-i18n="settings.send">Что отправлять</span>
+              <select id="set-mode">
+                <option value="gif" data-i18n="settings.send.gif">GIF-анимация (видно действие)</option>
+                <option value="photo" data-i18n="settings.send.photo">Одно фото JPEG (легче и быстрее)</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span data-i18n="settings.camera">Камера</span>
+              <select id="set-facing">
+                <option value="user" data-i18n="settings.camera.user">Фронтальная</option>
+                <option value="environment" data-i18n="settings.camera.env">Тыловая</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span><span data-i18n="settings.area.before">Чувствительность</span> <b id="val-area">2.0%</b> <span data-i18n="settings.area.after">кадра</span></span>
+              <input id="set-area" type="range" min="1" max="150" step="1" />
+              <small data-i18n="settings.area.hint">Ниже — реагирует на малейшее шевеление, выше — только на крупное движение.</small>
+            </label>
+
+            <label class="field">
+              <span><span data-i18n="settings.pixel.before">Порог шума</span> <b id="val-pixel">22</b> <span data-i18n="settings.pixel.after"></span></span>
+              <input id="set-pixel" type="range" min="6" max="70" step="1" />
+              <small data-i18n="settings.pixel.hint">Поднимите, если в полутьме сыплются ложные срабатывания.</small>
+            </label>
+
+            <label class="field">
+              <span><span data-i18n="settings.clip.before">Длина клипа</span> <b id="val-clip">3.0</b> <span data-i18n="settings.clip.after">с</span></span>
+              <input id="set-clip" type="range" min="10" max="80" step="5" />
+              <small data-i18n="settings.clip.hint">Включая 1 с до момента срабатывания — видно, как человек входит.</small>
+            </label>
+
+            <label class="field">
+              <span><span data-i18n="settings.cooldown.before">Пауза между событиями</span> <b id="val-cooldown">20</b> <span data-i18n="settings.cooldown.after">с</span></span>
+              <input id="set-cooldown" type="range" min="0" max="120" step="5" />
+            </label>
+
+            <label class="field">
+              <span><span data-i18n="settings.width.before">Ширина клипа</span> <b id="val-width">320</b> <span data-i18n="settings.width.after">px</span></span>
+              <input id="set-width" type="range" min="160" max="640" step="80" />
+            </label>
+
+            <label class="field checkbox">
+              <input id="set-sound" type="checkbox" />
+              <span data-i18n="settings.sound">Держать устройство активным звуковым хаком (нужно для телефона)</span>
+            </label>
+
+            <label class="field checkbox">
+              <input id="set-burst" type="checkbox" />
+              <span data-i18n="settings.burst">Серийная съёмка (индикатор камеры гаснет между сериями)</span>
+            </label>
+
+            <div id="burst-fields" hidden>
+              <label class="field">
+                <span><span data-i18n="settings.burstFrames.before">Кадров в серии</span> <b id="val-burst-frames">8</b> <span data-i18n="settings.burstFrames.after"></span></span>
+                <input id="set-burst-frames" type="range" min="2" max="30" step="1" />
+                <small data-i18n="settings.burstFrames.hint">Сколько снимков камера делает за одно включение.</small>
+              </label>
+
+              <label class="field">
+                <span><span data-i18n="settings.burstGap.before">Пауза между сериями</span> <b id="val-burst-gap">10</b> <span data-i18n="settings.burstGap.after">с</span></span>
+                <input id="set-burst-gap" type="range" min="0" max="120" step="1" />
+                <small data-i18n="settings.burstGap.hint">Пока идёт пауза, камера закрыта и индикатор не горит. Движение в эту паузу не фиксируется — режим выборочный, не непрерывный.</small>
+              </label>
+            </div>
+          </details>
+
+          <details id="ntfy-panel" class="settings">
+            <summary data-i18n="ntfy.title">Уведомления ntfy</summary>
+            <small class="panel-intro" data-i18n="ntfy.intro">
+              Клипы этой сессии прилетят в приложение ntfy на топик ниже. Придумайте длинный случайный
+              топик: кто его знает, тот и читает.
+            </small>
+            <label class="field">
+              <span data-i18n="ntfy.server">Сервер</span>
+              <input id="ntfy-url" type="text" placeholder="https://ntfy.sh" autocapitalize="off" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span data-i18n="ntfy.topic">Топик</span>
+              <input id="ntfy-topic" type="text" maxlength="64" placeholder="owleye-k3f9x2q7…" autocapitalize="off" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span data-i18n="ntfy.token">Токен ntfy (для защищённого топика)</span>
+              <input id="ntfy-token" type="password" autocapitalize="off" spellcheck="false" />
+            </label>
+            <div class="session-actions">
+              <button id="ntfy-save" type="button" class="primary" data-i18n="ntfy.save">Сохранить</button>
+              <button id="ntfy-test" type="button" class="ghost" data-i18n="ntfy.test">Отправить тест</button>
+            </div>
+            <small id="ntfy-status" class="panel-intro"></small>
+          </details>
+
+          <div id="push-panel" class="push" hidden>
+            <div class="push-text">
+              <b data-i18n="push.title">Уведомления на это устройство</b>
+              <small id="push-status" data-i18n="push.checking">Проверяю…</small>
+            </div>
+            <button id="btn-push" class="ghost" disabled data-i18n="push.enable">Включить</button>
+          </div>
+
+          <div class="diag">
+            <div><span data-i18n="diag.wake">Не спит</span><b id="diag-wake">—</b></div>
+            <div><span data-i18n="diag.analysis">Анализ</span><b id="diag-fps">—</b></div>
+            <div><span data-i18n="diag.events">Событий</span><b id="diag-events">0</b></div>
+            <div><span data-i18n="diag.queue">В очереди</span><b id="diag-queue">0</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="feed">
+        <h2 data-i18n="feed.title">События</h2>
+        <ul id="event-list" class="event-list">
+          <li class="empty" data-i18n="feed.empty">Пока тихо.</li>
+        </ul>
+      </section>
+
+      <footer class="foot">
+        <p id="adapters-line" data-i18n="foot.adaptersLoading">Адаптеры: загружаю…</p>
+        <p class="legal" data-i18n="foot.legal">
+          Пилот для гостиницы: предупредите всех участников о съёмке заранее. Записи лежат
+          только на этом компьютере и уходят в те каналы, которые вы сами включили.
+        </p>
+        <p class="legal">
+          <a href="/legal.html" data-i18n="foot.legalLink">Скрытая съёмка и закон — что грозит в разных странах</a>
+          (RU / EN / ไทย)
+        </p>
+        <p class="legal lang-row">
+          <label for="lang-select" data-i18n="foot.language">Язык</label>
+          <select id="lang-select">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+            <option value="sr">Srpski</option>
+            <option value="th">ไทย</option>
+          </select>
+        </p>
+      </footer>
+    </main>
+
+    <div id="blackout" class="blackout" hidden>
+      <div class="blackout-hint" data-i18n="blackout.hint">три касания или Esc — вернуться</div>
+    </div>
+
+    <!-- Silent looping video: the fallback that keeps phones awake where the
+         Screen Wake Lock API is unavailable (older iOS Safari, in-app browsers). -->
+    <video id="nosleep" src="/lib/nosleep.mp4" loop muted playsinline hidden></video>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

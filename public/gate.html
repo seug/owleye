@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="{{lang}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0d12" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>owleye</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230a0d12'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23f5c542'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%230a0d12'/%3E%3C/svg%3E" />
+    <style>
+      /* Self-contained on purpose: everything else on this host, including
+         styles.css, sits behind the token, and this page is what you see
+         before you have one. */
+      :root {
+        --bg: #0a0d12;
+        --panel: #121722;
+        --panel-2: #182031;
+        --line: #232c3d;
+        --text: #e8edf6;
+        --muted: #8d9ab3;
+        --accent: #f5c542;
+        --alert: #ff5f56;
+        --radius: 14px;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        background:
+          radial-gradient(60vmax 60vmax at 50% -10%, rgba(245, 197, 66, 0.07), transparent 60%),
+          var(--bg);
+      }
+      .card {
+        width: 100%;
+        max-width: 380px;
+      }
+      .brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 26px;
+      }
+      .eye {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 50%, var(--bg) 0 22%, var(--accent) 23% 62%, #3a2f10 63% 100%);
+        box-shadow: 0 0 34px rgba(245, 197, 66, 0.28);
+        animation: blink 6s infinite;
+      }
+      @keyframes blink {
+        0%, 92%, 100% { transform: scaleY(1); }
+        95% { transform: scaleY(0.08); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .eye { animation: none; }
+      }
+      h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 18px 16px 16px;
+      }
+      .lede {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input[type='password'] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--text);
+        font: inherit;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        letter-spacing: 0.08em;
+        min-height: 44px;
+      }
+      input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.18);
+      }
+      button {
+        width: 100%;
+        margin-top: 12px;
+        font: inherit;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 11px 16px;
+        border: 1px solid transparent;
+        background: var(--accent);
+        color: #1a1405;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      button:hover { filter: brightness(1.06); }
+      button.secondary {
+        background: var(--panel-2);
+        color: var(--text);
+        border-color: var(--line);
+        font-weight: 500;
+      }
+      .panel + .panel { margin-top: 12px; }
+      .signup .lede { margin-bottom: 4px; }
+      .signup button { margin-top: 12px; }
+      .card > .error { margin-bottom: 12px; }
+      .error {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        margin: 0 0 14px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 95, 86, 0.45);
+        background: rgba(255, 95, 86, 0.1);
+        color: #ffb3ae;
+        font-size: 14px;
+      }
+      .error::before {
+        content: '';
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--alert);
+        transform: translateY(-1px);
+      }
+      .hint {
+        margin: 22px 0 0;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .hint code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11.5px;
+        color: #aeb8cc;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 1px 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="brand">
+        <span class="eye" aria-hidden="true"></span>
+        <h1>owleye</h1>
+      </div>
+
+      <!--error-->
+      <!--signup-->
+      <form class="panel signup" method="post" action="/signup">
+        <p class="lede">{{gate.signup.lede}}</p>
+        <button type="submit">{{gate.signup.button}}</button>
+      </form>
+      <!--/signup-->
+
+      <form class="panel" method="post" action="/session" autocomplete="off">
+        <p class="lede">{{gate.enter.lede}}</p>
+        <input type="hidden" name="mode" value="view" />
+        <label for="token">{{gate.enter.label}}</label>
+        <input id="token" name="token" type="password" inputmode="text" autocapitalize="off" spellcheck="false" required />
+        <button type="submit" class="secondary">{{gate.enter.button}}</button>
+      </form>
+
+      <p class="hint">
+        {{gate.hint1}}<br />
+        {{gate.hint2}}
+      </p>
+    </main>
+  </body>
+</html>

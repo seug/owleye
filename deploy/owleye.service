@@ -1,0 +1,47 @@
+# systemd unit for owleye.
+#
+# Install:
+#   sudo cp deploy/owleye.service /etc/systemd/system/owleye.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now owleye
+#
+# Assumes: code in /opt/owleye, data in /var/lib/owleye, config in
+# /etc/owleye.env, running as the unprivileged user "owleye".
+
+[Unit]
+Description=owleye motion-triggered surveillance receiver
+Documentation=file:/opt/owleye/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=owleye
+Group=owleye
+WorkingDirectory=/opt/owleye
+EnvironmentFile=/etc/owleye.env
+ExecStart=/usr/bin/node /opt/owleye/server/index.js
+Restart=always
+RestartSec=3
+
+# Uncomment ONLY if owleye terminates TLS itself on port 443 (no reverse proxy).
+# AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# Hardening. ReadWritePaths must list every directory owleye writes to:
+# the data directory, and the certs directory if it generates a self-signed pair.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+ReadWritePaths=/var/lib/owleye /opt/owleye/certs
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=owleye
+
+[Install]
+WantedBy=multi-user.target

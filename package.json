@@ -1,0 +1,21 @@
+{
+  "name": "owleye",
+  "version": "0.1.0",
+  "description": "Turns a laptop or phone into a motion-triggered surveillance device. Detects motion in the browser, ships a GIF or JPEG to a local Node server, fans it out to adapters (file, Telegram, webhook).",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18.17"
+  },
+  "bin": {
+    "owleye": "./server/index.js"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "https": "node server/index.js --https",
+    "test": "node scripts/selftest.mjs",
+    "test:e2e": "node scripts/e2e.mjs"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

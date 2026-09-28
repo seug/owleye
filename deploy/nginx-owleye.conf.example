@@ -1,0 +1,51 @@
+# nginx in front of owleye.
+#
+#   sudo cp deploy/nginx-owleye.conf.example /etc/nginx/sites-available/owleye
+#   sudo ln -s /etc/nginx/sites-available/owleye /etc/nginx/sites-enabled/owleye
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo certbot --nginx -d owleye.example.com     # certificate
+#
+# owleye itself listens on loopback only, plain HTTP, behind one trusted proxy:
+#   OWLEYE_HOST=127.0.0.1
+#   OWLEYE_PORT=8443
+#   OWLEYE_HTTPS=0
+#   OWLEYE_TRUSTED_PROXIES=1   # so the signup rate limit sees the real client IP
+#
+# Three settings here are not optional — the defaults break owleye:
+#   client_max_body_size  nginx defaults to 1 MB; keep it >= OWLEYE_MAX_UPLOAD
+#   proxy_buffering off   otherwise the live event stream is buffered and stalls
+#   proxy_read_timeout    otherwise the event stream is cut after 60 s
+
+server {
+    listen 80;
+    server_name owleye.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name owleye.example.com;
+
+    # certbot fills these in
+    ssl_certificate     /etc/letsencrypt/live/owleye.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/owleye.example.com/privkey.pem;
+
+    # Must be >= OWLEYE_MAX_UPLOAD (1 MiB by default).
+    client_max_body_size 2m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8443;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Live event stream (/api/stream).
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}

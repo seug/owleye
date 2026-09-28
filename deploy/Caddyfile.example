@@ -1,0 +1,36 @@
+# Caddy in front of owleye — the least-effort option when you have a domain.
+# Caddy obtains and renews a Let's Encrypt certificate automatically.
+#
+#   sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile
+#   # edit the hostname and email below
+#   sudo systemctl reload caddy
+#
+# owleye itself must then listen on loopback only, plain HTTP, and be told it
+# sits behind exactly one trusted proxy so it reads the real client IP:
+#   OWLEYE_HOST=127.0.0.1
+#   OWLEYE_PORT=8443
+#   OWLEYE_HTTPS=0
+#   OWLEYE_TRUSTED_PROXIES=1
+
+owleye.example.com {
+	# Contact address for the certificate authority.
+	tls you@example.com
+
+	# Keep this at or above OWLEYE_MAX_UPLOAD (1 MiB by default) so the proxy
+	# never rejects a clip the app would have accepted.
+	request_body {
+		max_size 2MB
+	}
+
+	reverse_proxy 127.0.0.1:8443 {
+		# Server-sent events (/api/stream) must not be buffered. Caddy streams
+		# by default; this makes the intent explicit and disables the buffer.
+		flush_interval -1
+	}
+
+	encode gzip
+
+	log {
+		output file /var/log/caddy/owleye.log
+	}
+}

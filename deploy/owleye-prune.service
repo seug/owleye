@@ -1,0 +1,22 @@
+# Deletes clips older than the retention window.
+#
+# owleye never deletes anything on its own — on a server that means the disk
+# fills up eventually. Edit the +14 below to your retention period in days, and
+# check your local rules on how long such recordings may be kept.
+#
+# Install together with owleye-prune.timer:
+#   sudo cp deploy/owleye-prune.service deploy/owleye-prune.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now owleye-prune.timer
+#   systemctl list-timers owleye-prune
+
+[Unit]
+Description=Prune owleye clips older than the retention window
+
+[Service]
+Type=oneshot
+User=owleye
+Group=owleye
+# Both the default session (events/) and self-signup sessions (sessions/<id>/events/).
+ExecStart=/bin/sh -c 'find /var/lib/owleye/events /var/lib/owleye/sessions/*/events -type f -mtime +14 -delete 2>/dev/null; true'
+ExecStartPost=/bin/sh -c 'find /var/lib/owleye/events /var/lib/owleye/sessions/*/events -mindepth 1 -type d -empty -delete 2>/dev/null; true'
